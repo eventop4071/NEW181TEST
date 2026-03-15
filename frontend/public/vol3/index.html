@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026년 2월호 - 월간 181 </title>
+    <meta property="og:title" content="2026년 2월호 - 월간 181 ">
+    <meta property="og:description" content="요나서로 보는 하나님의 마음.">
+    <meta property="og:image" content="../covers/3.jpg">
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #f5f5f5;
+            --text-color: #333;
+            --ui-bg: rgba(255,255,255,0.9);
+            --accent: #5d4037;
+            --radio-bg: #222;
+            --radio-point: #0f0;
+        }
+        body.theme-dark {
+            --bg-color: #1a1a1a;
+            --text-color: #eee;
+            --ui-bg: rgba(30,30,30,0.9);
+            --accent: #d7ccc8;
+        }
+        body.theme-wood {
+            --bg-color: #3e2723;
+            --text-color: #d7ccc8;
+            --ui-bg: rgba(93, 64, 55, 0.9);
+            --accent: #ffccbc;
+        }
+        
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Gowun Batang', serif;
+            overflow-x: hidden;
+            transition: background 0.3s;
+            min-height: 100dvh;
+        }
+
+        .nav-bar {
+            position: fixed;
+            top: 20px; left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex; gap: 10px; align-items: center;
+            background: var(--ui-bg);
+            padding: 8px 15px;
+            border-radius: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            backdrop-filter: blur(5px);
+        }
+        .nav-btn {
+            border: none; background: none;
+            color: var(--text-color);
+            cursor: pointer; font-size: 1.1rem;
+            display: flex; align-items: center; justify-content: center;
+            width: 36px; height: 36px; border-radius: 50%;
+            transition: background 0.2s;
+            text-decoration: none;
+        }
+        .nav-btn:hover { background: rgba(0,0,0,0.1); }
+        .nav-btn.active { color: var(--accent); font-weight: bold; }
+
+        #bgm-volume-wrap { display: flex; align-items: center; gap: 5px; }
+        #bgm-volume { width: 60px; height: 4px; accent-color: var(--accent); cursor: pointer; }
+
+        #book-container {
+            width: 100vw; 
+            height: 100dvh;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            padding-top: 80px; 
+            padding-bottom: 80px; /* 오디오 플레이어 높이 + 여유 */
+            padding-bottom: calc(85px + env(safe-area-inset-bottom));
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .book-mode-wrap { position: relative; width: 100%; display: flex; align-items: center; justify-content: center; }
+        #book-canvas { box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .page { 
+            background-color: #fff; 
+            overflow: hidden; /* 페이지 내부 스크롤 제거 (잘림 원인) */
+            height: 100%; 
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+        .page::-webkit-scrollbar { display: none; }
+        .page img { 
+            width: 100%; height: 100%; 
+            object-fit: contain; 
+            background: #fff; 
+            transition: transform 0.1s ease-out;
+            transform-origin: center center;
+            user-select: none;
+            -webkit-user-drag: none;
+            touch-action: none; /* 제스처 직접 제어를 위해 기본 동작 방지 */
+        }
+
+        /* 줌 작동 중 배경 스크롤이나 넘김 방지용 */
+        .zoom-lock { overflow: hidden !important; touch-action: none !important; }
+
+        .scroll-mode-wrap {
+            max-width: 1000px; margin: 0 auto;
+            display: none; flex-direction: column; gap: 0; width: 100%;
+        }
+        .scroll-mode-wrap img { 
+            width: 100%; height: auto; 
+            display: block; 
+            object-fit: contain; 
+            transition: transform 0.1s ease-out;
+            transform-origin: center center;
+            touch-action: none;
+        }
+
+        .radio-player-fixed {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 70px;
+            background: var(--radio-bg); z-index: 2000;
+            display: flex; flex-direction: column;
+            border-top: 2px solid var(--radio-point);
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+            color: var(--radio-point);
+            font-family: monospace;
+        }
+        .radio-main { display: flex; align-items: center; flex: 1; padding: 0 15px; position: relative; overflow: hidden; gap: 10px; }
+        .radio-ctrl { z-index: 10; display: flex; align-items: center; gap: 8px; }
+        .play-btn {
+            background: none; border: 2px solid var(--radio-point); color: var(--radio-point);
+            width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+            font-size: 1rem; display: flex; align-items: center; justify-content: center;
+        }
+        .play-btn:hover { background: var(--radio-point); color: #000; }
+        .on-air {
+            background: var(--radio-point); color: #000; padding: 2px 5px;
+            font-size: 0.65rem; font-weight: bold; border-radius: 3px;
+            animation: blink 1s infinite;
+        }
+        .radio-center { flex: 1; position: relative; height: 100%; display: flex; align-items: center; overflow: hidden; }
+        .marquee-wrap { width: 100%; overflow: hidden; white-space: nowrap; z-index: 5; }
+        .marquee-text {
+            display: inline-block; padding-left: 100%;
+            animation: marquee 20s linear infinite; font-size: 0.95rem;
+        }
+        
+        .radio-right { display: flex; align-items: center; gap: 10px; z-index: 10; }
+        .radio-time { min-width: 80px; text-align: right; font-size: 0.85rem; }
+        .sermon-vol-wrap { display: flex; align-items: center; gap: 5px; }
+        .sermon-vol-wrap span { font-size: 0.8rem; }
+        #sermon-volume { width: 70px; height: 3px; accent-color: var(--radio-point); cursor: pointer; }
+
+        .progress-bar-wrap { width: 100%; height: 4px; background: #444; cursor: pointer; }
+        #progress-filled { width: 0%; height: 100%; background: var(--radio-point); }
+
+        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        #grid-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            z-index: 2005; display: none; padding: 50px 20px;
+            overflow-y: auto;
+        }
+        .grid-container {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px; max-width: 1000px; margin: 0 auto;
+        }
+        .grid-item { cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+        .grid-item:hover { border-color: var(--accent); }
+        .grid-item img { width: 100%; border-radius: 4px; }
+
+        .close-grid {
+            position: fixed; top: 20px; right: 20px;
+            color: white; font-size: 2rem; cursor: pointer;
+        }
+
+        .page-arrow {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            font-size: 3rem; color: var(--text-color); cursor: pointer;
+            opacity: 0.5; transition: 0.3s; z-index: 10;
+        }
+        .page-arrow:hover { opacity: 1; }
+        .arrow-left { left: 20px; }
+        .arrow-right { right: 20px; }
+
+        @media (max-width: 768px) {
+            .page-arrow { display: none; }
+            .nav-bar { padding: 5px 10px; gap: 3px; top: 10px; width: 95%; max-width: 380px; }
+            .nav-btn { width: 32px; height: 32px; font-size: 0.9rem; }
+            #bgm-volume { width: 45px; }
+            .scroll-mode-wrap { max-width: 100%; }
+            .page img, .scroll-mode-wrap img { width: 100% !important; height: auto !important; object-fit: contain !important; }
+            #book-container { 
+                padding-top: 70px; 
+                padding-bottom: calc(75px + env(safe-area-inset-bottom)); 
+            }
+            .radio-player-fixed { height: 60px; }
+            .sermon-vol-wrap { display: none; }
+        }
+    </style>
+</head>
+<body class="theme-dark">
+    <nav class="nav-bar">
+        <a href="../index.html" class="nav-btn" title="홈">🏠</a>
+        <div style="width: 1px; background: #ddd; height: 15px;"></div>
+        <button id="btn-book" class="nav-btn" onclick="setMode('book')">📖</button>
+        <button id="btn-scroll" class="nav-btn" onclick="setMode('scroll')">📜</button>
+        <div style="width: 1px; background: #ddd; height: 15px;"></div>
+        <button class="nav-btn" onclick="toggleTheme()" title="테마 변경">🎨</button>
+        <button class="nav-btn" onclick="toggleGrid(true)" title="모아보기">▦</button>
+        
+        <div id="bgm-volume-wrap" style="display:flex;">
+            <button id="btn-bgm" class="nav-btn" onclick="manualToggleBgm()" title="BGM 끄기/켜기">🎵</button>
+            <input type="range" id="bgm-volume" min="0" max="1" step="0.05" value="0.3" oninput="updateBgmVolume(this.value)">
+        </div>
+    </nav>
+
+    <div id="book-container">
+        <div id="book-mode" class="book-mode-wrap">
+            <div class="page-arrow arrow-left" onclick="pageFlip.flipPrev()">❮</div>
+            <div id="book-canvas"></div>
+            <div class="page-arrow arrow-right" onclick="pageFlip.flipNext()">❯</div>
+        </div>
+        <div id="scroll-mode" class="scroll-mode-wrap"></div>
+    </div>
+
+    <div id="radio-section" class="radio-player-fixed" style="display:flex;">
+        <div class="radio-main">
+            <div class="radio-ctrl">
+                <button class="play-btn" onclick="toggleSermon()" id="sermon-play-btn">▶</button>
+                <span class="on-air">ON AIR</span>
+            </div>
+            <div class="radio-center">
+                <div class="marquee-wrap">
+                    <div class="marquee-text">2월호: 아버지의 마음</div>
+                </div>
+            </div>
+            <div class="radio-right">
+                <div class="sermon-vol-wrap">
+                    <span>🔊</span>
+                    <input type="range" id="sermon-volume" min="0" max="1" step="0.05" value="0.5" oninput="updateSermonVolume(this.value)">
+                </div>
+                <div class="radio-time" id="sermon-time">00:00 / 00:00</div>
+            </div>
+        </div>
+        <div class="progress-bar-wrap" onclick="seekSermon(event)">
+            <div id="progress-filled"></div>
+        </div>
+    </div>
+
+    <div id="grid-overlay">
+        <span class="close-grid" onclick="toggleGrid(false)">✕</span>
+        <div class="grid-container" id="grid-content"></div>
+    </div>
+
+    <audio id="bgm-audio" loop><source src="../bgm/vol3.mp3" type="audio/mpeg"></audio>
+    <audio id="sermon-audio"><source src="../audios/vol3.mp3" type="audio/mpeg"></audio>
+
+    <script>
+        const PAGE_FILES = ["1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg", "6.jpg", "7.jpg", "8.jpg", "9.jpg", "10.jpg", "11.jpg", "12.jpg", "13.jpg", "14.jpg", "15.jpg", "16.jpg", "17.jpg", "18.jpg", "19.jpg", "20.jpg", "21.jpg"];
+        const VOL_ID = "vol3";
+        const BUILD_TIME = "1770378819";
+        const BGM_RANGE = [1, 999];
+        const HAS_SERMON = true;
+        
+        let pageFlip = null;
+        let currentMode = localStorage.getItem('viewMode_' + VOL_ID) || 'book';
+        let currentTheme = localStorage.getItem('siteTheme') || 'theme-dark';
+        
+        const bgmAudio = document.getElementById('bgm-audio');
+        const sermonAudio = document.getElementById('sermon-audio');
+        let bgmManuallyPaused = false;
+        let sermonPlaying = false;
+
+        // 초기 볼륨 설정
+        if (bgmAudio) bgmAudio.volume = 0.3;
+        if (HAS_SERMON && sermonAudio) sermonAudio.volume = 0.5;
+
+        function initApp() {
+            document.body.className = currentTheme;
+            setMode(currentMode);
+            renderGrid();
+            
+            window.addEventListener('scroll', () => {
+                if (currentMode === 'scroll') {
+                    const scrollY = window.scrollY + window.innerHeight / 2;
+                    const imgs = document.querySelectorAll('.scroll-mode-wrap img');
+                    let activeIdx = 0;
+                    imgs.forEach((img, idx) => {
+                        if (img && scrollY > img.offsetTop) activeIdx = idx;
+                    });
+                    if (window.lastScrolledIdx !== activeIdx) {
+                        resetAllZooms();
+                        window.lastScrolledIdx = activeIdx;
+                    }
+                    checkBgm(activeIdx + 1);
+                }
+            });
+
+            if (HAS_SERMON && sermonAudio) {
+                sermonAudio.ontimeupdate = updateSermonProgress;
+                sermonAudio.onended = () => {
+                    sermonPlaying = false;
+                    document.getElementById('sermon-play-btn').innerText = '▶';
+                    checkBgm(getCurrentPage());
+                };
+            }
+        }
+
+        function updateBgmVolume(val) {
+            if (bgmAudio) bgmAudio.volume = val;
+        }
+
+        function updateSermonVolume(val) {
+            if (HAS_SERMON && sermonAudio) sermonAudio.volume = val;
+        }
+
+        function getCurrentPage() {
+            if (currentMode === 'book' && pageFlip) return pageFlip.getCurrentPageIndex() + 1;
+            return 1; 
+        }
+
+        function checkBgm(pageNum) {
+            if (!bgmAudio || !BGM_RANGE || sermonPlaying) return;
+            const [start, end] = BGM_RANGE;
+            const isInside = pageNum >= start && pageNum <= end;
+            if (isInside && !bgmManuallyPaused) {
+                bgmAudio.play().catch(e => {});
+            } else {
+                bgmAudio.pause();
+            }
+        }
+
+        function manualToggleBgm() {
+            if (!bgmAudio) return;
+            if (bgmAudio.paused) {
+                bgmManuallyPaused = false;
+                if (!sermonPlaying) bgmAudio.play().catch(e => {});
+            } else {
+                bgmManuallyPaused = true;
+                bgmAudio.pause();
+            }
+            updateBgmIcon();
+        }
+
+        function updateBgmIcon() {
+            const btn = document.getElementById('btn-bgm');
+            if (btn && bgmAudio) btn.style.opacity = bgmAudio.paused ? "0.5" : "1";
+        }
+
+        function toggleSermon() {
+            if (!HAS_SERMON || !sermonAudio) return;
+            if (sermonAudio.paused) {
+                sermonPlaying = true;
+                if (bgmAudio) bgmAudio.pause();
+                sermonAudio.play().catch(e => alert("재생 오류가 발생했습니다."));
+                document.getElementById('sermon-play-btn').innerText = '❚❚';
+            } else {
+                sermonPlaying = false;
+                sermonAudio.pause();
+                document.getElementById('sermon-play-btn').innerText = '▶';
+                checkBgm(getCurrentPage());
+            }
+        }
+
+        function seekSermon(e) {
+            if (!HAS_SERMON || !sermonAudio) return;
+            const rect = e.currentTarget.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            sermonAudio.currentTime = pos * sermonAudio.duration;
+        }
+
+        function formatTime(s) {
+            const m = Math.floor(s / 60);
+            const ss = Math.floor(s % 60);
+            return `${m}:${ss < 10 ? '0' : ''}${ss}`;
+        }
+
+        function updateSermonProgress() {
+            if (!HAS_SERMON) return;
+            const cur = sermonAudio.currentTime;
+            const dur = sermonAudio.duration || 0;
+            const filled = document.getElementById('progress-filled');
+            if (filled) filled.style.width = (cur / dur * 100) + '%';
+            const timeEl = document.getElementById('sermon-time');
+            if (timeEl) timeEl.innerText = `${formatTime(cur)} / ${formatTime(dur)}`;
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            localStorage.setItem('viewMode_' + VOL_ID, mode);
+            const bookWrap = document.getElementById('book-mode');
+            const scrollWrap = document.getElementById('scroll-mode');
+            const btnBook = document.getElementById('btn-book');
+            const btnScroll = document.getElementById('btn-scroll');
+            if (mode === 'book') {
+                bookWrap.style.display = 'flex';
+                scrollWrap.style.display = 'none';
+                btnBook.classList.add('active');
+                btnScroll.classList.remove('active');
+                initBookFlip();
+            } else {
+                bookWrap.style.display = 'none';
+                scrollWrap.style.display = 'flex';
+                btnBook.classList.remove('active');
+                btnScroll.classList.add('active');
+                initScrollMode();
+            }
+        }
+
+        function initBookFlip() {
+            if (pageFlip) return;
+            const canvasRoot = document.getElementById('book-canvas');
+            canvasRoot.innerHTML = '';
+            pageFlip = new St.PageFlip(canvasRoot, {
+                width: 500, height: 700, size: "stretch",
+                minWidth: 300, maxWidth: 1000, minHeight: 400, maxHeight: 1533,
+                maxShadowOpacity: 0.5, showCover: true, mobileScrollSupport: false
+            });
+            const htmlPages = PAGE_FILES.map(f => {
+                const div = document.createElement('div');
+                div.className = 'page';
+                const img = document.createElement('img');
+                img.src = `${f}?v=${BUILD_TIME}`;
+                attachZoomEvents(img);
+                div.appendChild(img);
+                return div;
+            });
+            pageFlip.loadFromHTML(htmlPages);
+            pageFlip.on('flip', (e) => {
+                resetAllZooms();
+                checkBgm(e.data + 1);
+            });
+        }
+
+        // --- 핀치 줌 & 팬 로직 ---
+        let zoomState = {
+            scale: 1,
+            lastScale: 1,
+            translateX: 0,
+            translateY: 0,
+            lastX: 0,
+            lastY: 0,
+            isZooming: false,
+            initialDist: 0,
+            activeImg: null
+        };
+
+        function attachZoomEvents(img) {
+            img.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    zoomState.isZooming = true;
+                    zoomState.activeImg = img;
+                    zoomState.initialDist = Math.hypot(
+                        e.touches[0].pageX - e.touches[1].pageX,
+                        e.touches[0].pageY - e.touches[1].pageY
+                    );
+                    document.body.classList.add('zoom-lock');
+                    e.preventDefault();
+                    e.stopPropagation();
+                } else if (e.touches.length === 1) {
+                    zoomState.lastX = e.touches[0].pageX;
+                    zoomState.lastY = e.touches[0].pageY;
+                    // 확대 상태에서는 1방향 이동(Pan)을 감지하기 위해 일단 기록
+                    if (zoomState.scale > 1) {
+                        zoomState.activeImg = img;
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                }
+            }, { passive: false });
+
+            img.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2 && zoomState.isZooming) {
+                    const currentDist = Math.hypot(
+                        e.touches[0].pageX - e.touches[1].pageX,
+                        e.touches[0].pageY - e.touches[1].pageY
+                    );
+                    const zoomFactor = currentDist / zoomState.initialDist;
+                    zoomState.scale = Math.min(Math.max(zoomState.lastScale * zoomFactor, 1), 4);
+                    applyTransform(img);
+                    e.preventDefault();
+                    e.stopPropagation();
+                } else if (e.touches.length === 1 && zoomState.scale > 1) {
+                    const deltaX = e.touches[0].pageX - zoomState.lastX;
+                    const deltaY = e.touches[0].pageY - zoomState.lastY;
+                    zoomState.translateX += deltaX;
+                    zoomState.translateY += deltaY;
+                    zoomState.lastX = e.touches[0].pageX;
+                    zoomState.lastY = e.touches[0].pageY;
+                    applyTransform(img);
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }, { passive: false });
+
+            img.addEventListener('touchend', (e) => {
+                if (e.touches.length < 2) {
+                    zoomState.isZooming = false;
+                    zoomState.lastScale = zoomState.scale;
+                    if (zoomState.scale <= 1.05) {
+                        resetZoom(img);
+                        document.body.classList.remove('zoom-lock');
+                    }
+                }
+            }, { passive: false });
+        }
+
+        function applyTransform(img) {
+            if (!img) return;
+            img.style.transform = `scale(${zoomState.scale}) translate(${zoomState.translateX / zoomState.scale}px, ${zoomState.translateY / zoomState.scale}px)`;
+        }
+
+        function resetZoom(img) {
+            if (!img) return;
+            img.style.transform = `scale(1) translate(0px, 0px)`;
+            if (zoomState.activeImg === img) {
+                zoomState.scale = 1;
+                zoomState.lastScale = 1;
+                zoomState.translateX = 0;
+                zoomState.translateY = 0;
+            }
+        }
+
+        function resetAllZooms() {
+            const imgs = document.querySelectorAll('.page img, .scroll-mode-wrap img');
+            imgs.forEach(resetZoom);
+            document.body.classList.remove('zoom-lock');
+            zoomState.scale = 1;
+            zoomState.lastScale = 1;
+            zoomState.translateX = 0;
+            zoomState.translateY = 0;
+            zoomState.activeImg = null;
+        }
+
+        function initScrollMode() {
+            const scrollWrap = document.getElementById('scroll-mode');
+            if (scrollWrap.children.length > 0) return;
+            PAGE_FILES.forEach(f => {
+                const img = document.createElement('img');
+                img.src = `${f}?v=${BUILD_TIME}`;
+                img.loading = 'lazy';
+                attachZoomEvents(img);
+                scrollWrap.appendChild(img);
+            });
+        }
+
+        function toggleTheme() {
+            const themes = ['theme-light', 'theme-dark', 'theme-wood'];
+            let idx = themes.indexOf(currentTheme);
+            currentTheme = themes[(idx + 1) % themes.length];
+            document.body.className = currentTheme;
+            localStorage.setItem('siteTheme', currentTheme);
+        }
+
+        function toggleGrid(show) {
+            document.getElementById('grid-overlay').style.display = show ? 'block' : 'none';
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('grid-content');
+            PAGE_FILES.forEach((f, idx) => {
+                const item = document.createElement('div');
+                item.className = 'grid-item';
+                item.innerHTML = `<img src="../thumbs/${VOL_ID}/${f}?v=${BUILD_TIME}">`;
+                item.onclick = () => {
+                    toggleGrid(false);
+                    if (currentMode === 'book') pageFlip.turnToPage(idx);
+                    else {
+                        const imgs = document.querySelectorAll('.scroll-mode-wrap img');
+                        if (imgs[idx]) imgs[idx].scrollIntoView({ behavior: 'smooth' });
+                    }
+                };
+                grid.appendChild(item);
+            });
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (currentMode === 'book' && pageFlip) {
+                if (e.key === 'ArrowLeft') pageFlip.flipPrev();
+                if (e.key === 'ArrowRight') pageFlip.flipNext();
+            }
+        });
+
+        initApp();
+    </script>
+</body>
+</html>
